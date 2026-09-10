@@ -4,7 +4,7 @@ import requests
 app = Flask(__name__)
 
 def send_telegram_alert(msg):
-    token = "8827060061:AAHCAtyCdFcVX84EUb_svcCIAChZRtKYJ7c"
+    token = "8827060061:AAHcAtYcdFcvX84EUb_svcCIAChzRtKYJ7c"
     chat_id = "8386956572"
     url = f"https://api.telegram.org/bot{token}/sendMessage"
     try:
