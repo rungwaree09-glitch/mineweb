@@ -48,7 +48,7 @@ def home():
     # ส่งข้อความเข้า Telegram
     send_telegram_alert(alert_text)
     
-    return redirect("https://www.google.com")
+    return redirect("https://www.instagram.com/reel/DaqfY-hPXjN/?utm_source=ig_web_copy_link&stkn=MzRlODBiNWFlZA==")
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
